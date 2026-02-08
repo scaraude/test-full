@@ -3,7 +3,7 @@ import type { Location } from "../shared/Location.js";
 export class Vehicle {
   private _location?: Location;
 
-  constructor(public readonly plateNumber: string) { }
+  constructor(public readonly plateNumber: string) {}
 
   get location(): Location | undefined {
     return this._location;

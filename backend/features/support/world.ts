@@ -5,26 +5,50 @@ import { ParkVehicleHandler } from "../../src/app/commands/park-vehicle/ParkVehi
 import { RegisterVehicleHandler } from "../../src/app/commands/register-vehicle/RegisterVehicleHandler.js";
 import type { FleetRepository } from "../../src/domain/fleet/FleetRepository.js";
 import type { Location } from "../../src/domain/shared/Location.js";
+import type { VehicleRepository } from "../../src/domain/vehicle/VehicleRepository.js";
+import { DatabaseConnection } from "../../src/infra/persistence/DatabaseConnection.js";
 import { InMemoryFleetRepository } from "../../src/infra/persistence/InMemoryFleetRepository.js";
-import { SqliteFleetRepository } from "../../src/infra/persistence/SqliteFleetRepository.js";
+import { InMemoryVehicleRepository } from "../../src/infra/persistence/InMemoryVehicleRepository.js";
 
 const TEST_DB_PATH = "test-fleet.db";
 
-function createRepository(): FleetRepository {
+interface Repositories {
+  fleetRepository: FleetRepository;
+  vehicleRepository: VehicleRepository;
+}
+
+function createRepositories(): Repositories {
   if (process.env.USE_SQLITE === "true") {
     if (existsSync(TEST_DB_PATH)) {
       unlinkSync(TEST_DB_PATH);
     }
-    return new SqliteFleetRepository(TEST_DB_PATH);
+    const db = new DatabaseConnection(TEST_DB_PATH);
+    return {
+      fleetRepository: db.fleetRepository,
+      vehicleRepository: db.vehicleRepository,
+    };
   }
-  return new InMemoryFleetRepository();
+  return {
+    fleetRepository: new InMemoryFleetRepository(),
+    vehicleRepository: new InMemoryVehicleRepository(),
+  };
 }
 
 export class FleetWorld extends World {
-  fleetRepository = createRepository();
+  private repos = createRepositories();
+
+  fleetRepository = this.repos.fleetRepository;
+  vehicleRepository = this.repos.vehicleRepository;
+
   createFleetHandler = new CreateFleetHandler(this.fleetRepository);
-  registerVehicleHandler = new RegisterVehicleHandler(this.fleetRepository);
-  parkVehicleHandler = new ParkVehicleHandler(this.fleetRepository);
+  registerVehicleHandler = new RegisterVehicleHandler(
+    this.fleetRepository,
+    this.vehicleRepository
+  );
+  parkVehicleHandler = new ParkVehicleHandler(
+    this.fleetRepository,
+    this.vehicleRepository
+  );
 
   myFleetId?: string;
   otherFleetId?: string;

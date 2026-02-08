@@ -1,47 +1,28 @@
-import type { Location } from "../shared/Location.js";
-import {
-  VehicleAlreadyParkedAtLocationError,
-  VehicleAlreadyRegisteredError,
-  VehicleNotFoundError,
-} from "./errors.js";
-import type { Vehicle } from "./Vehicle.js";
+import { VehicleAlreadyRegisteredError } from "./errors.js";
 
 export class Fleet {
-  private vehicles: Map<string, Vehicle> = new Map();
+  private vehiclePlateNumbers: Set<string> = new Set();
 
   constructor(
     public readonly id: string,
-    public readonly userId: string
-  ) { }
+    public readonly userId: string,
+    vehiclePlateNumbers: string[] = []
+  ) {
+    this.vehiclePlateNumbers = new Set(vehiclePlateNumbers);
+  }
 
-  registerVehicle(vehicle: Vehicle): void {
-    if (this.vehicles.has(vehicle.plateNumber)) {
-      throw new VehicleAlreadyRegisteredError(vehicle.plateNumber, this.id);
+  registerVehicle(plateNumber: string): void {
+    if (this.vehiclePlateNumbers.has(plateNumber)) {
+      throw new VehicleAlreadyRegisteredError(plateNumber, this.id);
     }
-    this.vehicles.set(vehicle.plateNumber, vehicle);
+    this.vehiclePlateNumbers.add(plateNumber);
   }
 
   hasVehicle(plateNumber: string): boolean {
-    return this.vehicles.has(plateNumber);
+    return this.vehiclePlateNumbers.has(plateNumber);
   }
 
-  private _getVehicle(plateNumber: string): Vehicle {
-    const vehicle = this.vehicles.get(plateNumber);
-    if (!vehicle) {
-      throw new VehicleNotFoundError(plateNumber, this.id);
-    }
-    return vehicle;
-  }
-
-  parkVehicle(plateNumber: string, location: Location): void {
-    const vehicle = this._getVehicle(plateNumber);
-    if (vehicle.isParkedAt(location)) {
-      throw new VehicleAlreadyParkedAtLocationError(plateNumber);
-    }
-    vehicle.park(location);
-  }
-
-  getVehicleLocation(plateNumber: string): Location | undefined {
-    return this._getVehicle(plateNumber).location;
+  getVehiclePlateNumbers(): string[] {
+    return [...this.vehiclePlateNumbers];
   }
 }

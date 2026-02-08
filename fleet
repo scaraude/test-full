@@ -1,0 +1,3 @@
+#!/bin/bash
+DIR="$(cd "$(dirname "$0")" && pwd)"
+exec npx tsx "$DIR/backend/src/infra/cli/fleet.ts" "$@"
