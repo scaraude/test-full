@@ -10,7 +10,6 @@
   "scripts": {
     "algo": "tsx algo/algo.ts",
     "test:backend": "NODE_OPTIONS='--import tsx/esm' cucumber-js --config backend/cucumber.js backend/features",
-    "test:backend:sqlite": "USE_SQLITE=true NODE_OPTIONS='--import tsx/esm' cucumber-js --config backend/cucumber.js --profile sqlite backend/features",
     "fleet": "tsx backend/src/infra/cli/fleet.ts"
   },
   "keywords": [],
