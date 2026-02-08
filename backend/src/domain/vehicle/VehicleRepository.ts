@@ -1,7 +1,8 @@
+import type { Location } from "../shared/Location.js";
 import type { Vehicle } from "./Vehicle.js";
 
 export interface VehicleRepository {
-  save(vehicle: Vehicle): Promise<void>;
-  findByPlateNumber(plateNumber: string): Promise<Vehicle | undefined>;
-  findByPlateNumbers(plateNumbers: string[]): Promise<Vehicle[]>;
+  create(plateNumber: Vehicle["plateNumber"]): Promise<Vehicle["plateNumber"]>;
+  updateLocation(vehicleId: Vehicle["plateNumber"], location: Location): Promise<void>;
+  findByPlateNumber(plateNumber: Vehicle["plateNumber"]): Promise<Vehicle | undefined>;
 }

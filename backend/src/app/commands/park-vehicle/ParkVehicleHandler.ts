@@ -1,4 +1,3 @@
-import { Location } from "../../../domain/shared/Location.js";
 import {
   VehicleAlreadyParkedAtLocationError,
   VehicleNotFoundError,
@@ -12,24 +11,19 @@ export class ParkVehicleHandler {
   ) { }
 
   async handle(command: ParkVehicle): Promise<void> {
+    const { vehiclePlateNumber, location } = command;
+
     const vehicle = await this.vehicleRepository.findByPlateNumber(
-      command.vehiclePlateNumber
+      vehiclePlateNumber
     );
     if (!vehicle) {
-      throw new VehicleNotFoundError(command.vehiclePlateNumber);
+      throw new VehicleNotFoundError(vehiclePlateNumber);
     }
-
-    const location = new Location(
-      command.latitude,
-      command.longitude,
-      command.altitude
-    );
 
     if (vehicle.isParkedAt(location)) {
-      throw new VehicleAlreadyParkedAtLocationError(command.vehiclePlateNumber);
+      throw new VehicleAlreadyParkedAtLocationError(vehiclePlateNumber);
     }
 
-    vehicle.park(location);
-    await this.vehicleRepository.save(vehicle);
+    await this.vehicleRepository.updateLocation(vehicle.plateNumber, location);
   }
 }

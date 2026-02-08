@@ -1,28 +1,26 @@
-import { VehicleAlreadyRegisteredError } from "./errors.js";
+import { v4 as uuidv4 } from "uuid";
+import type { Vehicle } from "../vehicle/Vehicle.js";
 
 export class Fleet {
-  private vehiclePlateNumbers: Set<string> = new Set();
+  private vehiclePlateNumbers: Set<Vehicle["plateNumber"]> = new Set();
 
   constructor(
-    public readonly id: string,
-    public readonly userId: string,
-    vehiclePlateNumbers: string[] = []
+    public readonly id: string & { __brand: "FleetId" },
+    public readonly userId: string & { __brand: "UserId" },
+    vehiclePlateNumbers: Vehicle["plateNumber"][] = []
   ) {
     this.vehiclePlateNumbers = new Set(vehiclePlateNumbers);
   }
 
-  registerVehicle(plateNumber: string): void {
-    if (this.vehiclePlateNumbers.has(plateNumber)) {
-      throw new VehicleAlreadyRegisteredError(plateNumber, this.id);
-    }
-    this.vehiclePlateNumbers.add(plateNumber);
+  static generateId(): Fleet["id"] {
+    return uuidv4() as Fleet["id"];
   }
 
-  hasVehicle(plateNumber: string): boolean {
+  hasVehicle(plateNumber: Vehicle["plateNumber"]): boolean {
     return this.vehiclePlateNumbers.has(plateNumber);
   }
 
-  getVehiclePlateNumbers(): string[] {
+  getVehiclePlateNumbers(): Vehicle["plateNumber"][] {
     return [...this.vehiclePlateNumbers];
   }
 }

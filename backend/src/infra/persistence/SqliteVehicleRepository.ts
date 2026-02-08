@@ -4,7 +4,7 @@ import { Vehicle } from "../../domain/vehicle/Vehicle.js";
 import type { VehicleRepository } from "../../domain/vehicle/VehicleRepository.js";
 
 export class SqliteVehicleRepository implements VehicleRepository {
-  constructor(private db: Database.Database) {}
+  constructor(private db: Database.Database) { }
 
   init(): void {
     this.db.exec(`
@@ -17,37 +17,45 @@ export class SqliteVehicleRepository implements VehicleRepository {
     `);
   }
 
-  async save(vehicle: Vehicle): Promise<void> {
-    const loc = vehicle.location;
+  async create(plateNumber: Vehicle["plateNumber"]): Promise<Vehicle["plateNumber"]> {
     this.db
       .prepare(
         `
-      INSERT INTO vehicles (plate_number, latitude, longitude, altitude)
-      VALUES (?, ?, ?, ?)
-      ON CONFLICT(plate_number) DO UPDATE SET
-        latitude = excluded.latitude,
-        longitude = excluded.longitude,
-        altitude = excluded.altitude
+      INSERT INTO vehicles (plate_number) VALUES (?)
+    `
+      )
+      .run(plateNumber);
+
+    return plateNumber;
+  }
+
+  async updateLocation(vehicleId: Vehicle["plateNumber"], location: Location): Promise<void> {
+    this.db
+      .prepare(
+        `
+      UPDATE vehicles
+      SET latitude = ?, longitude = ?, altitude = ?
+      WHERE plate_number = ?
     `
       )
       .run(
-        vehicle.plateNumber,
-        loc?.latitude ?? null,
-        loc?.longitude ?? null,
-        loc?.altitude ?? null
+        location.latitude,
+        location.longitude,
+        location.altitude ?? null,
+        vehicleId
       );
   }
 
-  async findByPlateNumber(plateNumber: string): Promise<Vehicle | undefined> {
+  async findByPlateNumber(plateNumber: Vehicle["plateNumber"]): Promise<Vehicle | undefined> {
     const row = this.db
       .prepare(`SELECT * FROM vehicles WHERE plate_number = ?`)
       .get(plateNumber) as
       | {
-          plate_number: string;
-          latitude: number | null;
-          longitude: number | null;
-          altitude: number | null;
-        }
+        plate_number: Vehicle["plateNumber"];
+        latitude: number | null;
+        longitude: number | null;
+        altitude: number | null;
+      }
       | undefined;
 
     if (!row) {
@@ -57,38 +65,20 @@ export class SqliteVehicleRepository implements VehicleRepository {
     return this.rowToVehicle(row);
   }
 
-  async findByPlateNumbers(plateNumbers: string[]): Promise<Vehicle[]> {
-    if (plateNumbers.length === 0) {
-      return [];
-    }
-
-    const placeholders = plateNumbers.map(() => "?").join(", ");
-    const rows = this.db
-      .prepare(`SELECT * FROM vehicles WHERE plate_number IN (${placeholders})`)
-      .all(...plateNumbers) as Array<{
-      plate_number: string;
-      latitude: number | null;
-      longitude: number | null;
-      altitude: number | null;
-    }>;
-
-    return rows.map((row) => this.rowToVehicle(row));
-  }
-
   private rowToVehicle(row: {
-    plate_number: string;
+    plate_number: Vehicle["plateNumber"];
     latitude: number | null;
     longitude: number | null;
     altitude: number | null;
   }): Vehicle {
     const vehicle = new Vehicle(row.plate_number);
     if (row.latitude !== null && row.longitude !== null) {
-      const location = new Location(
-        row.latitude,
-        row.longitude,
-        row.altitude ?? undefined
-      );
-      vehicle.park(location);
+      const location = Location.fromData({
+        latitude: row.latitude,
+        longitude: row.longitude,
+        altitude: row.altitude ?? undefined
+      });
+      vehicle.location = location;
     }
     return vehicle;
   }

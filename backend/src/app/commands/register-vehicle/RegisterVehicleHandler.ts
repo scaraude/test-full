@@ -1,6 +1,5 @@
-import { FleetNotFoundError } from "../../../domain/fleet/errors.js";
+import { FleetNotFoundError, VehicleAlreadyRegisteredError } from "../../../domain/fleet/errors.js";
 import type { FleetRepository } from "../../../domain/fleet/FleetRepository.js";
-import { Vehicle } from "../../../domain/vehicle/Vehicle.js";
 import type { VehicleRepository } from "../../../domain/vehicle/VehicleRepository.js";
 import type { RegisterVehicle } from "./RegisterVehicle.js";
 
@@ -8,25 +7,26 @@ export class RegisterVehicleHandler {
   constructor(
     private fleetRepository: FleetRepository,
     private vehicleRepository: VehicleRepository
-  ) {}
+  ) { }
 
   async handle(command: RegisterVehicle): Promise<void> {
-    const fleet = await this.fleetRepository.findById(command.fleetId);
+    const { fleetId, vehiclePlateNumber } = command;
+
+    const fleet = await this.fleetRepository.findById(fleetId);
     if (!fleet) {
-      throw new FleetNotFoundError(command.fleetId);
+      throw new FleetNotFoundError(fleetId);
     }
 
-    // Register plate number in fleet
-    fleet.registerVehicle(command.vehiclePlateNumber);
-    await this.fleetRepository.save(fleet);
-
-    // Create vehicle if it doesn't exist yet
     const existingVehicle = await this.vehicleRepository.findByPlateNumber(
-      command.vehiclePlateNumber
+      vehiclePlateNumber
     );
     if (!existingVehicle) {
-      const vehicle = new Vehicle(command.vehiclePlateNumber);
-      await this.vehicleRepository.save(vehicle);
+      await this.vehicleRepository.create(vehiclePlateNumber);
     }
+
+    if (fleet.hasVehicle(vehiclePlateNumber)) {
+      throw new VehicleAlreadyRegisteredError(vehiclePlateNumber, fleet.id);
+    }
+    await this.fleetRepository.addVehicles(fleet.id, [vehiclePlateNumber]);
   }
 }

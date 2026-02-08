@@ -1,9 +1,10 @@
 import type Database from "better-sqlite3";
 import { Fleet } from "../../domain/fleet/Fleet.js";
 import type { FleetRepository } from "../../domain/fleet/FleetRepository.js";
+import type { Vehicle } from "../../domain/vehicle/Vehicle.js";
 
 export class SqliteFleetRepository implements FleetRepository {
-  constructor(private db: Database.Database) {}
+  constructor(private db: Database.Database) { }
 
   init(): void {
     this.db.exec(`
@@ -21,36 +22,41 @@ export class SqliteFleetRepository implements FleetRepository {
     `);
   }
 
-  async save(fleet: Fleet): Promise<void> {
-    const upsertFleet = this.db.prepare(`
+  async create(userId: Fleet["userId"]): Promise<Fleet["id"]> {
+    const fleetId = Fleet.generateId();
+
+    const createFleet = this.db.prepare(`
       INSERT INTO fleets (id, user_id) VALUES (?, ?)
-      ON CONFLICT(id) DO UPDATE SET user_id = excluded.user_id
-    `);
-
-    const deleteFleetVehicles = this.db.prepare(
-      `DELETE FROM fleet_vehicles WHERE fleet_id = ?`
-    );
-
-    const insertFleetVehicle = this.db.prepare(`
-      INSERT INTO fleet_vehicles (fleet_id, plate_number) VALUES (?, ?)
     `);
 
     const transaction = this.db.transaction(() => {
-      upsertFleet.run(fleet.id, fleet.userId);
-      deleteFleetVehicles.run(fleet.id);
+      createFleet.run(fleetId, userId);
+    });
 
-      for (const plateNumber of fleet.getVehiclePlateNumbers()) {
-        insertFleetVehicle.run(fleet.id, plateNumber);
+    transaction();
+
+    return fleetId;
+  }
+
+  async addVehicles(fleetId: Fleet["id"], vehiclePlateNumber: Vehicle["plateNumber"][]): Promise<void> {
+    const addVehicle = this.db.prepare(`
+      INSERT INTO fleet_vehicles (fleet_id, plate_number) VALUES (?, ?)
+      ON CONFLICT(fleet_id, plate_number) DO NOTHING
+    `);
+
+    const transaction = this.db.transaction(() => {
+      for (const plateNumber of vehiclePlateNumber) {
+        addVehicle.run(fleetId, plateNumber);
       }
     });
 
     transaction();
   }
 
-  async findById(id: string): Promise<Fleet | undefined> {
+  async findById(fleetId: Fleet["id"]): Promise<Fleet | undefined> {
     const fleetRow = this.db
       .prepare(`SELECT * FROM fleets WHERE id = ?`)
-      .get(id) as { id: string; user_id: string } | undefined;
+      .get(fleetId) as { id: Fleet["id"]; user_id: Fleet["userId"] } | undefined;
 
     if (!fleetRow) {
       return undefined;
@@ -58,7 +64,7 @@ export class SqliteFleetRepository implements FleetRepository {
 
     const vehicleRows = this.db
       .prepare(`SELECT plate_number FROM fleet_vehicles WHERE fleet_id = ?`)
-      .all(id) as Array<{ plate_number: string }>;
+      .all(fleetId) as Array<{ plate_number: Vehicle["plateNumber"] }>;
 
     const plateNumbers = vehicleRows.map((row) => row.plate_number);
 

@@ -3,6 +3,9 @@ import { program } from "commander";
 import { CreateFleetHandler } from "../../app/commands/create-fleet/CreateFleetHandler.js";
 import { ParkVehicleHandler } from "../../app/commands/park-vehicle/ParkVehicleHandler.js";
 import { RegisterVehicleHandler } from "../../app/commands/register-vehicle/RegisterVehicleHandler.js";
+import type { Fleet } from "../../domain/fleet/Fleet.js";
+import { Location } from "../../domain/shared/Location.js";
+import type { Vehicle } from "../../domain/vehicle/Vehicle.js";
 import { DatabaseConnection } from "../persistence/DatabaseConnection.js";
 
 const DB_PATH = process.env.FLEET_DB_PATH || "fleet.db";
@@ -14,7 +17,7 @@ program
   .command("create")
   .description("Create a new fleet for a user")
   .argument("<userId>", "User ID")
-  .action(async (userId: string) => {
+  .action(async (userId: Fleet["userId"]) => {
     const handler = new CreateFleetHandler(db.fleetRepository);
     const fleetId = await handler.handle({ userId });
     console.log(fleetId);
@@ -25,7 +28,7 @@ program
   .description("Register a vehicle to a fleet")
   .argument("<fleetId>", "Fleet ID")
   .argument("<vehiclePlateNumber>", "Vehicle plate number")
-  .action(async (fleetId: string, vehiclePlateNumber: string) => {
+  .action(async (fleetId: Fleet["id"], vehiclePlateNumber: Vehicle["plateNumber"]) => {
     const handler = new RegisterVehicleHandler(
       db.fleetRepository,
       db.vehicleRepository
@@ -43,7 +46,7 @@ program
   .argument("[alt]", "Altitude (optional)")
   .action(
     async (
-      vehiclePlateNumber: string,
+      vehiclePlateNumber: Vehicle["plateNumber"],
       lat: string,
       lng: string,
       alt?: string
@@ -53,9 +56,11 @@ program
       );
       await handler.handle({
         vehiclePlateNumber,
-        latitude: parseFloat(lat),
-        longitude: parseFloat(lng),
-        altitude: alt ? parseFloat(alt) : undefined,
+        location: Location.fromData({
+          latitude: parseFloat(lat),
+          longitude: parseFloat(lng),
+          altitude: alt ? parseFloat(alt) : undefined,
+        })
       });
     }
   );

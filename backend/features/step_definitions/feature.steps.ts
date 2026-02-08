@@ -1,16 +1,18 @@
 import { strict as assert } from "node:assert";
 import { Given, Then, When } from "@cucumber/cucumber";
 import { VehicleAlreadyRegisteredError } from "../../src/domain/fleet/errors.js";
+import type { Fleet } from "../../src/domain/fleet/Fleet.js";
 import { Location } from "../../src/domain/shared/Location.js";
 import { VehicleAlreadyParkedAtLocationError } from "../../src/domain/vehicle/errors.js";
+import type { Vehicle } from "../../src/domain/vehicle/Vehicle.js";
 import type { FleetWorld } from "../support/world.js";
 
 Given("my fleet", async function (this: FleetWorld) {
-    this.myFleetId = await this.createFleetHandler.handle({ userId: "user-1" });
+    this.myFleetId = await this.createFleetHandler.handle({ userId: "user-1" as Fleet["userId"] });
 });
 
 Given("a vehicle", function (this: FleetWorld) {
-    this.vehiclePlateNumber = "ABC-123";
+    this.vehiclePlateNumber = "ABC-123" as Vehicle["plateNumber"];
 });
 
 When("I register this vehicle into my fleet", async function (this: FleetWorld) {
@@ -49,7 +51,7 @@ Then("I should be informed this this vehicle has already been registered into my
 });
 
 Given("the fleet of another user", async function (this: FleetWorld) {
-    this.otherFleetId = await this.createFleetHandler.handle({ userId: "user-2" });
+    this.otherFleetId = await this.createFleetHandler.handle({ userId: "user-2" as Fleet["userId"] });
 });
 
 Given("this vehicle has been registered into the other user's fleet", async function (this: FleetWorld) {
@@ -60,7 +62,7 @@ Given("this vehicle has been registered into the other user's fleet", async func
 });
 
 Given("a location", function (this: FleetWorld) {
-    this.location = new Location(48.8566, 2.3522);
+    this.location = Location.fromData({ latitude: 48.8566, longitude: 2.3522 });
 });
 
 Given(
@@ -68,8 +70,7 @@ Given(
     async function (this: FleetWorld) {
         await this.parkVehicleHandler.handle({
             vehiclePlateNumber: this.vehiclePlateNumber!,
-            latitude: this.location!.latitude,
-            longitude: this.location!.longitude,
+            location: this.location!
         });
     }
 );
@@ -77,8 +78,7 @@ Given(
 When("I park my vehicle at this location", async function (this: FleetWorld) {
     await this.parkVehicleHandler.handle({
         vehiclePlateNumber: this.vehiclePlateNumber!,
-        latitude: this.location!.latitude,
-        longitude: this.location!.longitude,
+        location: this.location!
     });
 });
 
@@ -99,8 +99,7 @@ When(
         try {
             await this.parkVehicleHandler.handle({
                 vehiclePlateNumber: this.vehiclePlateNumber!,
-                latitude: this.location!.latitude,
-                longitude: this.location!.longitude,
+                location: this.location!
             });
         } catch (error) {
             this.error = error as Error;

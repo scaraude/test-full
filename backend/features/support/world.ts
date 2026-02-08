@@ -7,6 +7,8 @@ import type { FleetRepository } from "../../src/domain/fleet/FleetRepository.js"
 import type { Location } from "../../src/domain/shared/Location.js";
 import type { VehicleRepository } from "../../src/domain/vehicle/VehicleRepository.js";
 import { DatabaseConnection } from "../../src/infra/persistence/DatabaseConnection.js";
+import type { Fleet } from "../../src/domain/fleet/Fleet.js";
+import type { Vehicle } from "../../src/domain/vehicle/Vehicle.js";
 
 const TEST_DB_PATH = "test-fleet.db";
 
@@ -41,9 +43,9 @@ export class FleetWorld extends World {
     this.vehicleRepository
   );
 
-  myFleetId?: string;
-  otherFleetId?: string;
-  vehiclePlateNumber?: string;
+  myFleetId?: Fleet["id"];
+  otherFleetId?: Fleet["id"];
+  vehiclePlateNumber?: Vehicle["plateNumber"];
   location?: Location;
   error?: Error;
 }
