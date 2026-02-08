@@ -20,3 +20,9 @@ Feature: Park a vehicle
         And my vehicle has been parked into this location
         When I try to park my vehicle at this location
         Then I should be informed that my vehicle is already parked at this location
+
+    Scenario: Can't park a vehicle that is not registered in my fleet
+        And the fleet of another user
+        And a location
+        When I try to park my vehicle using the other user's fleet
+        Then I should be informed that the vehicle is not registered in my fleet

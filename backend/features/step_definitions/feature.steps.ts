@@ -1,7 +1,10 @@
 /** biome-ignore-all lint/style/noNonNullAssertion: <test file: values are injected> */
 import { strict as assert } from "node:assert";
 import { Given, Then, When } from "@cucumber/cucumber";
-import { VehicleAlreadyRegisteredError } from "../../src/domain/fleet/errors.js";
+import {
+	VehicleAlreadyRegisteredError,
+	VehicleNotRegisteredInFleetError,
+} from "../../src/domain/fleet/errors.js";
 import type { Fleet } from "../../src/domain/fleet/Fleet.js";
 import { Location } from "../../src/domain/shared/Location.js";
 import { VehicleAlreadyParkedAtLocationError } from "../../src/domain/vehicle/errors.js";
@@ -92,6 +95,7 @@ Given(
 	"my vehicle has been parked into this location",
 	async function (this: FleetWorld) {
 		await this.parkVehicleHandler.handle({
+			fleetId: this.myFleetId!,
 			vehiclePlateNumber: this.vehiclePlateNumber!,
 			location: this.location!,
 		});
@@ -100,6 +104,7 @@ Given(
 
 When("I park my vehicle at this location", async function (this: FleetWorld) {
 	await this.parkVehicleHandler.handle({
+		fleetId: this.myFleetId!,
 		vehiclePlateNumber: this.vehiclePlateNumber!,
 		location: this.location!,
 	});
@@ -121,6 +126,7 @@ When(
 	async function (this: FleetWorld) {
 		try {
 			await this.parkVehicleHandler.handle({
+				fleetId: this.myFleetId!,
 				vehiclePlateNumber: this.vehiclePlateNumber!,
 				location: this.location!,
 			});
@@ -134,5 +140,27 @@ Then(
 	"I should be informed that my vehicle is already parked at this location",
 	function (this: FleetWorld) {
 		assert.ok(this.error instanceof VehicleAlreadyParkedAtLocationError);
+	},
+);
+
+When(
+	"I try to park my vehicle using the other user's fleet",
+	async function (this: FleetWorld) {
+		try {
+			await this.parkVehicleHandler.handle({
+				fleetId: this.otherFleetId!,
+				vehiclePlateNumber: this.vehiclePlateNumber!,
+				location: this.location!,
+			});
+		} catch (error) {
+			this.error = error as Error;
+		}
+	},
+);
+
+Then(
+	"I should be informed that the vehicle is not registered in my fleet",
+	function (this: FleetWorld) {
+		assert.ok(this.error instanceof VehicleNotRegisteredInFleetError);
 	},
 );
