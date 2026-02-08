@@ -4,10 +4,10 @@ import type { FleetRepository } from "../../domain/fleet/FleetRepository.js";
 import type { Vehicle } from "../../domain/vehicle/Vehicle.js";
 
 export class SqliteFleetRepository implements FleetRepository {
-  constructor(private db: Database.Database) { }
+	constructor(private db: Database.Database) {}
 
-  init(): void {
-    this.db.exec(`
+	init(): void {
+		this.db.exec(`
       CREATE TABLE IF NOT EXISTS fleets (
         id TEXT PRIMARY KEY,
         user_id TEXT NOT NULL
@@ -20,54 +20,59 @@ export class SqliteFleetRepository implements FleetRepository {
         FOREIGN KEY (fleet_id) REFERENCES fleets(id)
       );
     `);
-  }
+	}
 
-  async create(userId: Fleet["userId"]): Promise<Fleet["id"]> {
-    const fleetId = Fleet.generateId();
+	async create(userId: Fleet["userId"]): Promise<Fleet["id"]> {
+		const fleetId = Fleet.generateId();
 
-    const createFleet = this.db.prepare(`
+		const createFleet = this.db.prepare(`
       INSERT INTO fleets (id, user_id) VALUES (?, ?)
     `);
 
-    const transaction = this.db.transaction(() => {
-      createFleet.run(fleetId, userId);
-    });
+		const transaction = this.db.transaction(() => {
+			createFleet.run(fleetId, userId);
+		});
 
-    transaction();
+		transaction();
 
-    return fleetId;
-  }
+		return fleetId;
+	}
 
-  async addVehicles(fleetId: Fleet["id"], vehiclePlateNumber: Vehicle["plateNumber"][]): Promise<void> {
-    const addVehicle = this.db.prepare(`
+	async addVehicles(
+		fleetId: Fleet["id"],
+		vehiclePlateNumber: Vehicle["plateNumber"][],
+	): Promise<void> {
+		const addVehicle = this.db.prepare(`
       INSERT INTO fleet_vehicles (fleet_id, plate_number) VALUES (?, ?)
       ON CONFLICT(fleet_id, plate_number) DO NOTHING
     `);
 
-    const transaction = this.db.transaction(() => {
-      for (const plateNumber of vehiclePlateNumber) {
-        addVehicle.run(fleetId, plateNumber);
-      }
-    });
+		const transaction = this.db.transaction(() => {
+			for (const plateNumber of vehiclePlateNumber) {
+				addVehicle.run(fleetId, plateNumber);
+			}
+		});
 
-    transaction();
-  }
+		transaction();
+	}
 
-  async findById(fleetId: Fleet["id"]): Promise<Fleet | undefined> {
-    const fleetRow = this.db
-      .prepare(`SELECT * FROM fleets WHERE id = ?`)
-      .get(fleetId) as { id: Fleet["id"]; user_id: Fleet["userId"] } | undefined;
+	async findById(fleetId: Fleet["id"]): Promise<Fleet | undefined> {
+		const fleetRow = this.db
+			.prepare(`SELECT * FROM fleets WHERE id = ?`)
+			.get(fleetId) as
+			| { id: Fleet["id"]; user_id: Fleet["userId"] }
+			| undefined;
 
-    if (!fleetRow) {
-      return undefined;
-    }
+		if (!fleetRow) {
+			return undefined;
+		}
 
-    const vehicleRows = this.db
-      .prepare(`SELECT plate_number FROM fleet_vehicles WHERE fleet_id = ?`)
-      .all(fleetId) as Array<{ plate_number: Vehicle["plateNumber"] }>;
+		const vehicleRows = this.db
+			.prepare(`SELECT plate_number FROM fleet_vehicles WHERE fleet_id = ?`)
+			.all(fleetId) as Array<{ plate_number: Vehicle["plateNumber"] }>;
 
-    const plateNumbers = vehicleRows.map((row) => row.plate_number);
+		const plateNumbers = vehicleRows.map((row) => row.plate_number);
 
-    return new Fleet(fleetRow.id, fleetRow.user_id, plateNumbers);
-  }
+		return new Fleet(fleetRow.id, fleetRow.user_id, plateNumbers);
+	}
 }

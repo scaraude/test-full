@@ -13,8 +13,8 @@
     "algo": "tsx algo/algo.ts",
     "test:backend": "NODE_OPTIONS='--import tsx/esm' cucumber-js --config backend/cucumber.js backend/features",
     "fleet": "tsx backend/src/infra/cli/fleet.ts",
-    "lint": "biome check ./backend/src",
-    "lint:fix": "biome check --write ./backend/src"
+    "lint": "biome check ./backend",
+    "lint:fix": "biome check --write ./backend"
   },
   "keywords": [],
   "author": "",

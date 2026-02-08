@@ -1,9 +1,9 @@
 export default {
-  import: ["backend/features/**/*.ts"],
+	import: ["backend/features/**/*.ts"],
 };
 
 export const sqlite = {
-  import: ["backend/features/**/*.ts"],
-  tags: "@critical",
-  worldParameters: {},
+	import: ["backend/features/**/*.ts"],
+	tags: "@critical",
+	worldParameters: {},
 };
