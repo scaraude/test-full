@@ -1,0 +1,4 @@
+[
+  { "divider": 3, "labelToDisplay": "Fizz" },
+  { "divider": 5, "labelToDisplay": "Buzz" }
+]
