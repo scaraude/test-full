@@ -18,8 +18,4 @@ export class DatabaseConnection {
     this.fleetRepository.init();
     this.vehicleRepository.init();
   }
-
-  close(): void {
-    this.db.close();
-  }
 }

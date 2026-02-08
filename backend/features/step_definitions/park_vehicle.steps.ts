@@ -12,7 +12,6 @@ Given(
   "my vehicle has been parked into this location",
   async function (this: FleetWorld) {
     await this.parkVehicleHandler.handle({
-      fleetId: this.myFleetId!,
       vehiclePlateNumber: this.vehiclePlateNumber!,
       latitude: this.location!.latitude,
       longitude: this.location!.longitude,
@@ -22,7 +21,6 @@ Given(
 
 When("I park my vehicle at this location", async function (this: FleetWorld) {
   await this.parkVehicleHandler.handle({
-    fleetId: this.myFleetId!,
     vehiclePlateNumber: this.vehiclePlateNumber!,
     latitude: this.location!.latitude,
     longitude: this.location!.longitude,
@@ -34,7 +32,6 @@ When(
   async function (this: FleetWorld) {
     try {
       await this.parkVehicleHandler.handle({
-        fleetId: this.myFleetId!,
         vehiclePlateNumber: this.vehiclePlateNumber!,
         latitude: this.location!.latitude,
         longitude: this.location!.longitude,

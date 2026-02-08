@@ -43,18 +43,15 @@ program
   .argument("[alt]", "Altitude (optional)")
   .action(
     async (
-      fleetId: string,
       vehiclePlateNumber: string,
       lat: string,
       lng: string,
       alt?: string
     ) => {
       const handler = new ParkVehicleHandler(
-        db.fleetRepository,
         db.vehicleRepository
       );
       await handler.handle({
-        fleetId,
         vehiclePlateNumber,
         latitude: parseFloat(lat),
         longitude: parseFloat(lng),
