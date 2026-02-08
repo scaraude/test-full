@@ -1,0 +1,19 @@
+{
+  "name": "test-full",
+  "version": "1.0.0",
+  "description": "",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "algo": "tsx algo/algo.ts",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "packageManager": "pnpm@10.29.1",
+  "devDependencies": {
+    "@types/node": "^25.2.2",
+    "tsx": "^4.21.0"
+  }
+}
