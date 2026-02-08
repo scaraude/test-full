@@ -5,5 +5,4 @@ export default {
 export const sqlite = {
 	import: ["backend/features/**/*.ts"],
 	tags: "@critical",
-	worldParameters: {},
 };
