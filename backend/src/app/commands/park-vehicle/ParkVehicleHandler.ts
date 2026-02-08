@@ -12,7 +12,7 @@ export class ParkVehicleHandler {
       throw new FleetNotFoundError(command.fleetId);
     }
 
-    const location = new Location(command.latitude, command.longitude);
+    const location = new Location(command.latitude, command.longitude, command.altitude);
     fleet.parkVehicle(command.vehiclePlateNumber, location);
     await this.fleetRepository.save(fleet);
   }
