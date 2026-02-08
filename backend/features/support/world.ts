@@ -49,7 +49,10 @@ export class FleetWorld extends World {
 		this.fleetRepository,
 		this.vehicleRepository,
 	);
-	parkVehicleHandler = new ParkVehicleHandler(this.fleetRepository, this.vehicleRepository);
+	parkVehicleHandler = new ParkVehicleHandler(
+		this.fleetRepository,
+		this.vehicleRepository,
+	);
 
 	myFleetId?: Fleet["id"];
 	otherFleetId?: Fleet["id"];

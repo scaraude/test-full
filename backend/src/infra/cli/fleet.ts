@@ -60,7 +60,10 @@ program
 			lng: string,
 			alt?: string,
 		) => {
-			const handler = new ParkVehicleHandler(db.fleetRepository, db.vehicleRepository);
+			const handler = new ParkVehicleHandler(
+				db.fleetRepository,
+				db.vehicleRepository,
+			);
 			await handler.handle({
 				fleetId,
 				vehiclePlateNumber,

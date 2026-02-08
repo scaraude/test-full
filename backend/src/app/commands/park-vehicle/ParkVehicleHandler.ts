@@ -1,8 +1,8 @@
-import type { FleetRepository } from "../../../domain/fleet/FleetRepository.js";
 import {
 	FleetNotFoundError,
 	VehicleNotRegisteredInFleetError,
 } from "../../../domain/fleet/errors.js";
+import type { FleetRepository } from "../../../domain/fleet/FleetRepository.js";
 import {
 	VehicleAlreadyParkedAtLocationError,
 	VehicleNotFoundError,
