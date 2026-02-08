@@ -4,9 +4,14 @@
   "description": "",
   "type": "module",
   "main": "index.js",
+  "pnpm": {
+    "onlyBuiltDependencies": ["better-sqlite3"]
+  },
   "scripts": {
     "algo": "tsx algo/algo.ts",
-    "test:backend": "NODE_OPTIONS='--import tsx/esm' cucumber-js --config backend/cucumber.js backend/features"
+    "test:backend": "NODE_OPTIONS='--import tsx/esm' cucumber-js --config backend/cucumber.js backend/features",
+    "test:backend:sqlite": "USE_SQLITE=true NODE_OPTIONS='--import tsx/esm' cucumber-js --config backend/cucumber.js --profile sqlite backend/features",
+    "fleet": "tsx backend/src/infra/cli/fleet.ts"
   },
   "keywords": [],
   "author": "",
@@ -14,12 +19,15 @@
   "packageManager": "pnpm@10.29.1",
   "devDependencies": {
     "@cucumber/cucumber": "^12.6.0",
+    "@types/better-sqlite3": "^7.6.13",
     "@types/node": "^25.2.2",
     "@types/uuid": "^11.0.0",
     "tsx": "^4.21.0",
     "typescript": "^5.9.3"
   },
   "dependencies": {
+    "better-sqlite3": "^12.6.2",
+    "commander": "^14.0.3",
     "uuid": "^13.0.0"
   }
 }
