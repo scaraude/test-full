@@ -1,3 +1,8 @@
+import type { FleetRepository } from "../../../domain/fleet/FleetRepository.js";
+import {
+	FleetNotFoundError,
+	VehicleNotRegisteredInFleetError,
+} from "../../../domain/fleet/errors.js";
 import {
 	VehicleAlreadyParkedAtLocationError,
 	VehicleNotFoundError,
@@ -6,10 +11,22 @@ import type { VehicleRepository } from "../../../domain/vehicle/VehicleRepositor
 import type { ParkVehicle } from "./ParkVehicle.js";
 
 export class ParkVehicleHandler {
-	constructor(private vehicleRepository: VehicleRepository) {}
+	constructor(
+		private fleetRepository: FleetRepository,
+		private vehicleRepository: VehicleRepository,
+	) {}
 
 	async handle(command: ParkVehicle): Promise<void> {
-		const { vehiclePlateNumber, location } = command;
+		const { fleetId, vehiclePlateNumber, location } = command;
+
+		const fleet = await this.fleetRepository.findById(fleetId);
+		if (!fleet) {
+			throw new FleetNotFoundError(fleetId);
+		}
+
+		if (!fleet.hasVehicle(vehiclePlateNumber)) {
+			throw new VehicleNotRegisteredInFleetError(vehiclePlateNumber, fleetId);
+		}
 
 		const vehicle =
 			await this.vehicleRepository.findByPlateNumber(vehiclePlateNumber);
